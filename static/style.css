@@ -1,0 +1,72 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #9c6060;
+    color: blueviolet;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+input, select, button {
+    padding: 9px;
+    margin: 6px;
+    border: none;
+    border-radius: 4px;
+}
+button {
+    background: burlywood;
+    color: aquamarine;
+    cursor: pointer;
+}
+button:hover {
+    background: blue;
+}
+.grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.cell {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+    font-size: 20px;
+    border-radius: 10px;
+    background: black;
+    transition: background 0.5s;
+}
+.cell.active {
+    background: cyan;
+    color: black;
+}
+.cell.replaced {
+    background: chocolate;
+    color: black;
+}
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 70%;
+}
+th, td {
+    border: 1px solid #555;
+    padding: 6px 10px;
+}
+th {
+    background: #555;
+}
+#eventlog {
+    height: 200px;
+    overflow-y: auto;
+    text-align: left;
+    background: black;
+    padding: 10px;
+    border-radius: 5px;
+    width: 70%;
+    margin: auto;
+
+}
