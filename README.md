@@ -5,6 +5,10 @@ A **web-based Memory Management Simulator** that visually demonstrates **page re
 This simulator helps you understand how operating systems manage **virtual memory**, handle **page faults**, and replace pages in frames based on different strategies.
 
 ---
+## 🎯 Why This Project?
+Understanding memory management is a crucial concept in operating systems.  
+This project was built to make learning **page replacement algorithms** more interactive and intuitive — bridging the gap between theory and real-world visualization.
+
 
 ## 🚀 Features
 
