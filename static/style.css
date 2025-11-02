@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
-    background: #9c6060;
-    color: blueviolet;
+    background:black;
+    color:whitesmoke;
     text-align: center;
     margin: 0;
     padding: 20px;
@@ -13,8 +13,8 @@ input, select, button {
     border-radius: 4px;
 }
 button {
-    background: burlywood;
-    color: aquamarine;
+    background: blue;
+    color:whitesmoke;
     cursor: pointer;
 }
 button:hover {
@@ -29,14 +29,14 @@ button:hover {
 .cell {
     width: 60px;
     height: 60px;
-    border: 1px solid #555;
+    border: 1px solid whitesmoke;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 5px;
     font-size: 20px;
     border-radius: 10px;
-    background: black;
+    background:white;
     transition: background 0.5s;
 }
 .cell.active {
