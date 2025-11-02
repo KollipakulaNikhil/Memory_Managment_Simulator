@@ -22,7 +22,7 @@ This simulator helps you understand how operating systems manage **virtual memor
 ---
 
 ## 🏗️ Project Structure
-
+```
 memory-management-simulator/
 │
 ├── app.py # Flask backend handling simulation logic and routes
@@ -34,7 +34,7 @@ memory-management-simulator/
 └── README.md # Project documentation
 
 
-
+```
 ---
 
 ## ⚙️ Installation and Setup
