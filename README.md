@@ -20,6 +20,13 @@ This simulator helps you understand how operating systems manage **virtual memor
 - 🌈 Clean and modern dark UI built with pure HTML, CSS, and JS  
 
 ---
+## 🎓 Learning Outcomes
+By using or exploring this project, you will:
+- Understand how page replacement algorithms work internally  
+- Learn how operating systems handle memory and page faults  
+- Gain experience in building Flask-based interactive web apps  
+- Strengthen your understanding of frontend-backend communication (via JSON APIs)
+
 
 ## 🏗️ Project Structure
 ```
