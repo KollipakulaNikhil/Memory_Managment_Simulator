@@ -42,6 +42,11 @@ memory-management-simulator/
 
 
 ```
+## 🙌 Acknowledgments
+- Inspired by Operating System concepts from Silberschatz et al.  
+- UI design influenced by modern dark themes  
+- Built with 💙 using Flask and Vanilla JS
+
 ---
 
 ## ⚙️ Installation and Setup
