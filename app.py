@@ -1,54 +1,30 @@
-# -------------------------------
-# Memory Management Simulator
-# Flask Backend Application
-# -------------------------------
-# Author: [Your Name]
-# Description: Simulates page replacement algorithms (FIFO, LRU, LFU)
-# and exposes REST API endpoints to step through or run the full simulation.
-# -------------------------------
-
 from flask import Flask, jsonify, request, render_template
 from threading import Lock
 
-# Initialize Flask app and thread lock for safe multi-access
 app = Flask(__name__, static_folder='static')
 LOCK = Lock()
 
 
-# -------------------------------
-# Simulation Class
-# -------------------------------
+# Paging Simulation (unchanged)
+
+
 class PageReplacementSim:
-    """
-    Handles simulation logic for page replacement algorithms.
-    Supported algorithms: FIFO, LRU, LFU
-    """
-
     def __init__(self, refs, frames, algo):
-        # Initialize simulation parameters
-        self.refs = refs                   # Page reference string (list of integers)
-        self.frames = frames               # Total available frames
-        self.algo = algo.upper()           # Algorithm name (FIFO/LRU/LFU)
-
-        # Page table structure: holds status of each page
+        self.refs = refs
+        self.frames = frames
+        self.algo = algo.upper()
         self.page_table = {
             p: {"valid": False, "frame": None, "last_access": None, "access_count": 0}
             for p in set(refs)
         }
-
-        # Memory frames initialized as empty
         self.memory = [None] * frames
-        self.time = 0                      # Logical time counter
-        self.pointer = 0                   # Used for FIFO replacement
-        self.finished = False              # Flag to check if simulation completed
-        self.next_index = 0                # Current reference index
-        self.last_event = None             # Stores last simulation event for UI display
+        self.time = 0
+        self.pointer = 0
+        self.finished = False
+        self.next_index = 0
+        self.last_event = None
 
     def snapshot(self):
-        """
-        Returns current snapshot of the simulation state.
-        Used for frontend visualization.
-        """
         return {
             "memory": self.memory,
             "page_table": self.page_table,
@@ -57,14 +33,9 @@ class PageReplacementSim:
         }
 
     def step(self):
-        """
-        Executes one step of the simulation.
-        Returns JSON structure with current state and event info.
-        """
         if self.finished:
-            return {"done": True, "state": self.snapshot}
+            return {"done": True, "state": self.snapshot()}
 
-        # Stop if reference string is fully processed
         if self.next_index >= len(self.refs):
             self.finished = True
             self.last_event = "Simulation finished"
@@ -75,17 +46,14 @@ class PageReplacementSim:
         self.last_event = None
         victim = None
 
-        # If page already in memory → hit
         if self.page_table[page]["valid"]:
             self.page_table[page]["last_access"] = self.time
             self.page_table[page]["access_count"] += 1
             self.last_event = f"Page {page} already in memory (hit)"
         else:
-            # If free frame exists → use it
             if None in self.memory:
                 frame_index = self.memory.index(None)
             else:
-                # Otherwise, apply replacement policy
                 if self.algo == "FIFO":
                     victim = self.memory[self.pointer]
                     frame_index = self.pointer
@@ -105,11 +73,9 @@ class PageReplacementSim:
                 else:
                     raise ValueError("Invalid algorithm")
 
-                # Invalidate the victim page
                 self.page_table[victim]["valid"] = False
                 self.page_table[victim]["frame"] = None
 
-            # Load new page into memory
             self.memory[frame_index] = page
             self.page_table[page]["valid"] = True
             self.page_table[page]["frame"] = frame_index
@@ -120,37 +86,77 @@ class PageReplacementSim:
             if victim:
                 self.last_event += f" (Replaced {victim})"
 
-        # Move to next page reference
         self.next_index += 1
         return {"done": False, "state": self.snapshot(), "event": self.last_event}
 
     def run_to_end(self):
-        """
-        Runs the simulation to completion (for automatic full-run mode).
-        """
         while not self.finished:
             self.step()
 
 
-# Global variable to store active simulation
-SIM = None
+SIM = None   # paging simulation instance
 
 
-# -------------------------------
-# Flask Routes (API Endpoints)
-# -------------------------------
+
+# Segmentation Simulation 
+
+
+class SegmentationSim:
+    def __init__(self, segments):
+        self.segments = {
+            s["id"]: {"base": s["base"], "limit": s["limit"]}
+            for s in segments
+        }
+        self.last_event = None
+
+    def translate(self, seg_id, offset):
+        if seg_id not in self.segments:
+            self.last_event = f"Fault → Invalid segment {seg_id}"
+            return None
+
+        seg = self.segments[seg_id]
+
+        if offset > seg["limit"]:
+            self.last_event = f"Fault → Offset {offset} > limit {seg['limit']}"
+            return None
+
+        physical = seg["base"] + offset
+        self.last_event = (
+            f"Translated (seg={seg_id}, off={offset}) → physical={physical}"
+        )
+        return physical
+
+    def snapshot(self):
+        return {
+            "segments": self.segments,
+            "event": self.last_event
+        }
+
+
+SEG_SIM = None   # segmentation simulation instance
+
+
+
+# ROUTES
+
 
 @app.route('/')
 def index():
-    """Render the main UI page."""
     return render_template('index.html')
 
 
+# ----- Paging -----
 @app.route('/init', methods=['POST'])
 def init():
-    """Initialize the simulation with user-provided input."""
-    global SIM
+    global SIM, SEG_SIM
     data = request.json
+    
+    # Check if segmentation mode
+    if data.get("mode") == "segmentation":
+        SEG_SIM = SegmentationSim(data["segments"])
+        return jsonify({"status": "initialized", "state": SEG_SIM.snapshot()})
+    
+    # Paging mode (default)
     SIM = PageReplacementSim(
         refs=list(map(int, data['refs'].split())),
         frames=int(data['frames']),
@@ -161,7 +167,6 @@ def init():
 
 @app.route('/step', methods=['POST'])
 def step():
-    """Perform one simulation step."""
     global SIM
     with LOCK:
         if SIM is None:
@@ -172,7 +177,6 @@ def step():
 
 @app.route('/run', methods=['POST'])
 def run_all():
-    """Run the simulation until all page references are processed."""
     global SIM
     if SIM is None:
         return jsonify({"error": "not initialized"}), 400
@@ -182,7 +186,6 @@ def run_all():
 
 @app.route('/snapshot', methods=['GET'])
 def snapshot():
-    """Return current snapshot of the simulation state."""
     global SIM
     if SIM is None:
         return jsonify({"error": "not initialized"}), 400
@@ -191,8 +194,29 @@ def snapshot():
     return jsonify({"state": SIM.snapshot()})
 
 
-# -------------------------------
-# Run the Flask app
-# -------------------------------
+# ----- Segmentation -----
+@app.route('/init_seg', methods=['POST'])
+def init_seg():
+    global SEG_SIM
+    data = request.json
+    SEG_SIM = SegmentationSim(data["segments"])
+    return jsonify({"status": "initialized", "state": SEG_SIM.snapshot()})
+
+
+@app.route('/translate', methods=['POST'])
+def translate():
+    global SEG_SIM
+    if SEG_SIM is None:
+        return jsonify({"error": "Segmentation not initialized"}), 400
+
+    data = request.json
+    seg = data["segment"]
+    off = data["offset"]
+
+    paddr = SEG_SIM.translate(seg, off)
+    return jsonify({"physical": paddr, "state": SEG_SIM.snapshot()})
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
